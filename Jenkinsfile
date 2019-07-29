@@ -35,13 +35,29 @@ volumes: [
                 }
             }
         }
-        stage('Archieve Artifact and Upload to jfrog') {
+        /*stage('Archieve Artifact and Upload to jfrog') {
             container('maven') {
                 dir('hello-world-war/') {
                     archiveArtifacts 'target/hello-world-war-1.0.0.war'
                     sh 'curl -uadmin:AP4jYfSHAhSG4H13n4mSwtgk7Hu -T target/hello-world-war-1.0.0.war "http://34.93.216.255/artifactory/example-repo-local/helloworld/"'
                 }
             }
-        }
+        }*/
+	stage('Artifact Upload') {
+            container('maven') {
+    			rtUpload (
+    				serverId: "art1",
+    				spec:
+    					"""{
+    					  "files": [
+    						{
+    						  "pattern": "/home/jenkins/workspace/testproj3/hello-world-war/target/*.war",
+    						  "target": "example-repo-local/hello-world/"
+    						}
+    					 ]
+    					}"""
+    			)
+            }
+	}
     }
 }
