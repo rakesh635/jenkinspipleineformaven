@@ -99,7 +99,7 @@ volumes: [
                     namespace: 'qadeploy'
                     ]) {
                     sh 'kubectl get pods'
-		    sh 'kubectl apply -f kubernetes'
+		    sh 'kubectl apply -f kubernetesfiles/deployment.yaml'
                     }
 	    }
 	}
