@@ -92,15 +92,17 @@ volumes: [
         stage('kubectl')
 	{
             container('kubectl') {
-		withKubeConfig([credentialsId: 'GKEcluster',
-                    serverUrl: 'https://34.93.78.217',
-                    contextName: 'qaenv',
-                    clusterName: 'qaenv',
-                    namespace: 'qadeploy'
-                    ]) {
-                    sh 'kubectl get pods'
-		    sh 'kubectl apply -f kubernetesfiles/deployment.yaml'
-                    }
+		dir('hello-world-war/') {
+		    withKubeConfig([credentialsId: 'GKEcluster',
+                        serverUrl: 'https://34.93.78.217',
+                        contextName: 'qaenv',
+                        clusterName: 'qaenv',
+                        namespace: 'qadeploy'
+                        ]) {
+                        sh 'kubectl get pods'
+		        sh 'kubectl apply -f kubernetesfiles/deployment.yaml'
+                        }
+		}
 	    }
 	}
     }
