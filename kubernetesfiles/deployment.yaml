@@ -4,15 +4,16 @@ metadata:
   annotations:
     deployment.kubernetes.io/revision: "1"
     field.cattle.io/creatorId: user-gxg96
+    field.cattle.io/publicEndpoints: '[{"addresses":["34.93.72.142"],"port":8080,"protocol":"TCP","serviceName":"qadeploy:helloworld-loadbalancer","allNodes":false}]'
   creationTimestamp: "2019-08-02T12:05:04Z"
-  generation: 1
+  generation: 2
   labels:
     cattle.io/creator: norman
-    workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}
-  name: {{APPNAME}}
+    workload.user.cattle.io/workloadselector: deployment-qadeploy-helloworld
+  name: helloworld
   namespace: qadeploy
-  resourceVersion: "2475997"
-  selfLink: /apis/apps/v1beta2/namespaces/qadeploy/deployments/{{APPNAME}}
+  resourceVersion: "2476171"
+  selfLink: /apis/apps/v1beta2/namespaces/qadeploy/deployments/helloworld
   uid: c37251cb-b51d-11e9-8837-42010aa000b1
 spec:
   progressDeadlineSeconds: 600
@@ -20,7 +21,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}
+      workload.user.cattle.io/workloadselector: deployment-qadeploy-helloworld
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -30,15 +31,15 @@ spec:
     metadata:
       annotations:
         cattle.io/timestamp: "2019-08-02T12:05:04Z"
-        field.cattle.io/ports: '[[{"containerPort":8080,"dnsName":"{{APPNAME}}-loadbalancer","kind":"LoadBalancer","name":"8080tcp80803","protocol":"TCP","sourcePort":8080}]]'
+        field.cattle.io/ports: '[[{"containerPort":8080,"dnsName":"helloworld-loadbalancer","kind":"LoadBalancer","name":"8080tcp80803","protocol":"TCP","sourcePort":8080}]]'
       creationTimestamp: null
       labels:
-        workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}
+        workload.user.cattle.io/workloadselector: deployment-qadeploy-helloworld
     spec:
       containers:
       - image: rakesh635/testhelloworld:64
         imagePullPolicy: Always
-        name: {{APPNAME}}
+        name: helloworld
         ports:
         - containerPort: 8080
           name: 8080tcp80803
