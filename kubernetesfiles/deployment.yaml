@@ -48,3 +48,22 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    cattle.io/creator: norman
+  name: helloworld-loadbalancer
+  namespace: qadeploy
+spec:
+  externalTrafficPolicy: Cluster
+  ports:
+  - name: 8080tcp80803
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    workload.user.cattle.io/workloadselector: deployment-qadeploy-helloworld
+  sessionAffinity: None
+  type: LoadBalancer      
