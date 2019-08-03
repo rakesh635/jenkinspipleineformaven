@@ -37,7 +37,7 @@ spec:
         workload.user.cattle.io/workloadselector: deployment-qadeploy-helloworld
     spec:
       containers:
-      - image: rakesh635/testhelloworld:64
+      - image: rakesh635/testhelloworld:66
         imagePullPolicy: Always
         name: helloworld
         ports:
