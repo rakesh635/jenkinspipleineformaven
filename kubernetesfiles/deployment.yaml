@@ -4,17 +4,17 @@ metadata:
   annotations:
     deployment.kubernetes.io/revision: "1"
     field.cattle.io/creatorId: user-gxg96
-    field.cattle.io/publicEndpoints: '[{"addresses":["34.93.72.142"],"port":8080,"protocol":"TCP","serviceName":"qadeploy:helloworld-loadbalancer","allNodes":false}]'
-  creationTimestamp: "2019-08-02T12:05:04Z"
+    field.cattle.io/publicEndpoints: '[{"addresses":["34.93.229.87"],"port":8080,"protocol":"TCP","serviceName":"qadeploy:helloworld-loadbalancer","allNodes":false}]'
+  creationTimestamp: "2019-08-03T19:30:50Z"
   generation: 2
   labels:
     cattle.io/creator: norman
     workload.user.cattle.io/workloadselector: deployment-qadeploy-helloworld
   name: helloworld
   namespace: qadeploy
-  resourceVersion: "2476171"
+  resourceVersion: "2865528"
   selfLink: /apis/apps/v1beta2/namespaces/qadeploy/deployments/helloworld
-  uid: c37251cb-b51d-11e9-8837-42010aa000b1
+  uid: 335004fa-b625-11e9-8837-42010aa000b1
 spec:
   progressDeadlineSeconds: 600
   replicas: 3
@@ -30,7 +30,7 @@ spec:
   template:
     metadata:
       annotations:
-        cattle.io/timestamp: "2019-08-02T12:05:04Z"
+        cattle.io/timestamp: "2019-08-03T19:30:49Z"
         field.cattle.io/ports: '[[{"containerPort":8080,"dnsName":"helloworld-loadbalancer","kind":"LoadBalancer","name":"8080tcp80803","protocol":"TCP","sourcePort":8080}]]'
       creationTimestamp: null
       labels:
@@ -60,3 +60,22 @@ spec:
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 3
+  conditions:
+  - lastTransitionTime: "2019-08-03T19:30:56Z"
+    lastUpdateTime: "2019-08-03T19:30:56Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2019-08-03T19:30:50Z"
+    lastUpdateTime: "2019-08-03T19:30:56Z"
+    message: ReplicaSet "helloworld-67d9c6bfdc" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  observedGeneration: 2
+  readyReplicas: 3
+  replicas: 3
+  updatedReplicas: 3
