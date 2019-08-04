@@ -2,7 +2,7 @@ podTemplate(label: 'mypod1', containers: [
     containerTemplate(name: 'git', image: 'alpine/git', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', command: 'cat', ttyEnabled: true),
     containerTemplate(name: 'docker', image: 'docker', command: 'cat', ttyEnabled: true),
-    containerTemplate(name: 'kubectl', image: 'k3integrations/kubectl', command: '', ttyEnabled: true),
+    containerTemplate(name: 'kubectl', image: 'roffe/kubectl:v1.13.2', command: '', ttyEnabled: true),
     containerTemplate(name: 'tomcat8', image: 'tomcat:8.0', command: '', ttyEnabled: true)
 ],
 volumes: [
@@ -25,6 +25,11 @@ volumes: [
                 sh 'whoami'
                 sh 'hostname -i'
                 sh 'git clone -b master https://github.com/rakesh635/hello-world-war.git'
+                sh 'git clone -b master https://github.com/rakesh635/jenkinspipleineformaven.git'
+                dir('jenkinspipleineformaven/') {
+                    sh "sed -i 's/{{BUILDNUMBER}}/$BUILD_NUMBER/g' kubernetesfiles/deployment.yaml"
+                    sh 'cat kubernetesfiles/deployment.yaml'
+			    }
             }
         }
 
@@ -33,6 +38,7 @@ volumes: [
                 dir('hello-world-war/') {
                     sh 'hostname'
                     sh 'hostname -i'
+                    sh 'ls -ltrha'
                     sh 'mvn clean install'
                 }
             }
@@ -80,7 +86,7 @@ volumes: [
 		stage('Prepare and Push docker image to registry(dockerhub)') {
             container('docker') {
                 sh '''
-                contid=`docker ps --filter ancestor=tomcat:8.0 --quiet`
+                contid=`docker ps --filter "label=io.kubernetes.container.name=tomcat8" --quiet`
                 echo $contid
                 docker commit $contid rakesh635/testhelloworld:$BUILD_NUMBER
                 '''
@@ -89,20 +95,28 @@ volumes: [
                 }
             }
         }
-	stage('kubectl')
-	{
-	    container('kubectl') {
-	        withKubeConfig([credentialsId: 'GKEcluster',
+        stage('Deply to Kubernetes cluster')
+		{
+		    container('kubectl') {
+		        withKubeConfig([credentialsId: 'GKEcluster',
                     serverUrl: 'https://34.93.78.217',
                     contextName: 'qaenv',
                     clusterName: 'qaenv',
                     namespace: 'qadeploy'
                     ]) {
-			dir('hello-world-war/') {
+                        dir('jenkinspipleineformaven/') {
                     	    sh 'kubectl apply -f kubernetesfiles/deployment.yaml'
-			}
+                            ext_ip = sh (
+                                script: 'kubectl describe service helloworld-loadbalancer | grep "LoadBalancer Ingress" | cut -d":" -f2 | sed -e "s/^[ \t]*//" ',
+                                returnStdout: true
+                            ).trim()
+			            }
                     }
-	    }
-        }
+		    }
+		}
+		stage("http://${ext_ip}:8080")
+		{
+		    echo "Appln URL : http://${ext_ip}:8080"   
+		}
     }
 }
