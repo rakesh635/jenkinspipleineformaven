@@ -6,7 +6,6 @@ metadata:
     cattle.io/creator: norman
     workload.user.cattle.io/workloadselector: deployment-qadeploy-helloworld
   name: helloworld
-  namespace: qadeploy
 spec:
   progressDeadlineSeconds: 600
   replicas: 3
