@@ -114,9 +114,9 @@ volumes: [
                     }
 		    }
 		}
-		stage("http://${ext_ip}:8080")
+		stage("http://${ext_ip}:8080/hello")
 		{
-		    echo "Appln URL : http://${ext_ip}:8080"   
+		    echo "Appln URL : http://${ext_ip}:8080/hello"   
 		}
     }
 }
