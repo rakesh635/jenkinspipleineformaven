@@ -54,7 +54,6 @@ metadata:
   labels:
     cattle.io/creator: norman
   name: helloworld-loadbalancer
-  namespace: qadeploy
 spec:
   externalTrafficPolicy: Cluster
   ports:
