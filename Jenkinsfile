@@ -114,7 +114,7 @@ volumes: [
                     }
 		    }
 		}
-		stage("http://${ext_ip}:8080/hello")
+		stage("Deployed URL")
 		{
 		    echo "Appln URL : http://${ext_ip}:8080/hello"   
 		}
