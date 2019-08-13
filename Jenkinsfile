@@ -89,9 +89,11 @@ volumes: [
                 contid=`docker ps --filter "label=io.kubernetes.container.name=tomcat8" --quiet`
                 echo $contid
                 docker commit $contid rakesh635/testhelloworld:$BUILD_NUMBER
+		docker tag rakesh635/testhelloworld:$BUILD_NUMBER rakesh635/testhelloworld:latest
                 '''
                 docker.withRegistry('', 'dockerlogin') {
                     sh 'docker push rakesh635/testhelloworld:$BUILD_NUMBER'
+		    sh 'docker push rakesh635/testhelloworld:latest'
                 }
             }
         }
