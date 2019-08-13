@@ -96,7 +96,7 @@ volumes: [
             }
         }
         try {
-    		stage("Deployed URL")
+    		stage("Deployment")
     		{
     		    container('kubectl') {
     		        withKubeConfig([credentialsId: 'GKEcluster',
