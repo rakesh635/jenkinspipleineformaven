@@ -95,28 +95,52 @@ volumes: [
                 }
             }
         }
-        stage('Deply to Kubernetes cluster')
-		{
-		    container('kubectl') {
-		        withKubeConfig([credentialsId: 'GKEcluster',
-                    serverUrl: 'https://34.93.78.217',
-                    contextName: 'qaenv',
-                    clusterName: 'qaenv',
-                    namespace: 'qadeploy'
-                    ]) {
-                        dir('jenkinspipleineformaven/') {
-                    	    sh 'kubectl apply -f kubernetesfiles/deployment.yaml'
-                            ext_ip = sh (
-                                script: 'kubectl describe service helloworld-loadbalancer | grep "LoadBalancer Ingress" | cut -d":" -f2 | sed -e "s/^[ \t]*//" ',
-                                returnStdout: true
-                            ).trim()
-			            }
-                    }
-		    }
-		}
+        try {
+    		stage("Deployed URL")
+    		{
+    		    container('kubectl') {
+    		        withKubeConfig([credentialsId: 'GKEcluster',
+                        serverUrl: 'https://34.93.78.217',
+                        contextName: 'qaenv',
+                        clusterName: 'qaenv',
+                        namespace: 'test'
+                        ]) {
+                            sh 'kubectl rollout status deployment.v1.apps/helloworld'
+                		    for (int i = 0; i < 10; i++) {
+                                ext_ip = sh (
+                                    script: 'kubectl describe service helloworld-loadbalancer | grep "LoadBalancer Ingress" | cut -d":" -f2 | sed -e "s/^[ \t]*//" ',
+                                    returnStdout: true
+                                ).trim()  
+                                if(ext_ip != '') {break;}
+                            }
+                            if(ext_ip != '') {
+                                echo "Appln URL : http://${ext_ip}:8080/hello"
+                            } else {
+                                sh 'exit -1'
+                            }
+                        }
+    		    }
+    		}
 		stage("Deployed URL")
 		{
-		    echo "Appln URL : http://${ext_ip}:8080/hello"   
+			echo "Appln URL : http://${ext_ip}:8080/hello"   
 		}
+	} catch (Exception err) {
+            echo "Some issue with updating new version; so rolling back to previous version"
+            stage("RollBack") {       
+                container('kubectl') {
+			withKubeConfig([credentialsId: 'GKEcluster',
+			serverUrl: 'https://34.93.78.217',
+			contextName: 'qaenv',
+			clusterName: 'qaenv',
+			namespace: 'test'
+			]) {
+			    dir('jenkinspipleineformaven/') {
+					sh 'kubectl rollout undo -f kubernetesfiles/deployment.yaml'
+			    }
+			}
+		    }
+            }
+        }
     }
 }
