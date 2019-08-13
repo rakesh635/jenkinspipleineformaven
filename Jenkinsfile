@@ -105,8 +105,12 @@ volumes: [
                         serverUrl: 'https://34.93.78.217',
                         contextName: 'qaenv',
                         clusterName: 'qaenv',
-                        namespace: 'test'
+                        namespace: 'qadeploy'
                         ]) {
+			    dir('jenkinspipleineformaven/') {
+                    	    	sh 'kubectl apply -f kubernetesfiles/deployment.yaml'
+                    	    	sh 'kubectl apply -f kubernetesfiles/service.yaml'
+			    }
                             sh 'kubectl rollout status deployment.v1.apps/helloworld'
                 		    for (int i = 0; i < 10; i++) {
                                 ext_ip = sh (
@@ -135,7 +139,7 @@ volumes: [
 			serverUrl: 'https://34.93.78.217',
 			contextName: 'qaenv',
 			clusterName: 'qaenv',
-			namespace: 'test'
+			namespace: 'qadeploy'
 			]) {
 			    dir('jenkinspipleineformaven/') {
 					sh 'kubectl rollout undo -f kubernetesfiles/deployment.yaml'
