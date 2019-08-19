@@ -4,7 +4,6 @@ kind: Deployment
 metadata:
   labels:
     cattle.io/creator: norman
-    workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}
     workload.user.cattle.io/workloadselectorcanary: deployment-qadeploy-{{APPNAME}}-canary
   name: {{APPNAME}}
 spec:
@@ -13,7 +12,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}
+      workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}-canary
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -22,7 +21,7 @@ spec:
   template:
     metadata:
       labels:
-        workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}
+        workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}-canary
     spec:
       containers:
       - image: rakesh635/testhelloworld:{{BUILDNUMBER}}
