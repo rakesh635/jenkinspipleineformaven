@@ -5,6 +5,7 @@ metadata:
   labels:
     cattle.io/creator: norman
     workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}
+    workload.user.cattle.io/workloadselectorcanary: deployment-qadeploy-{{APPNAME}}-canary
   name: {{APPNAME}}
 spec:
   progressDeadlineSeconds: 90
