@@ -163,7 +163,7 @@ volumes: [
     		}
 			stage("Deployed URL")
 			{
-				echo "Appln URL : http://${ext_ip}:8080/hello"   
+				echo "Appln URL : http://${ext_ip}:8080/"+env.APPNAME
 			}
 		} catch (Exception err) {
             echo "Some issue with updating new version; so rolling back to previous version"
