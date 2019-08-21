@@ -92,7 +92,7 @@ volumes: [
                           "files": [
                             {
                               "pattern": "mavenlocal/*.war",
-                              "target": "test/hello.war"
+                              "target": "test/"""+env.APPNAME+""".war"
                             }
                          ]
                         }"""
@@ -119,7 +119,7 @@ volumes: [
                 }
             }
         }
-        stage('Deply to Kubernetes cluster')
+        stage('Initiate Deployment to Kubernetes cluster')
 		{
 		    container('kubectl') {
 		        withKubeConfig([credentialsId: 'GKEcluster',
@@ -136,7 +136,7 @@ volumes: [
 		    }
 		}
 		try {
-    		stage("Deployed URL")
+    		stage("Deployment")
     		{
     		    container('kubectl') {
     		        withKubeConfig([credentialsId: 'GKEcluster',
@@ -185,7 +185,7 @@ volumes: [
         }
         if (env.DEPLOYMENTSTRATEGY == 'canary') {
             try {
-                stage("Canary Analysis in 30 Seconds") {
+                stage("Canary Approval after analysis in 30 Seconds") {
                     timeout(time: 300, unit: 'SECONDS') {
                         script {
                             def CANARYAPPROVAL = input message: 'Please Provide Parameters', ok: 'Next',
