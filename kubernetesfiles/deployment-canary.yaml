@@ -12,7 +12,7 @@ spec:
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      workload.user.cattle.io/workloadselector: deployment-qadeploy-helloworld
+      workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -21,12 +21,12 @@ spec:
   template:
     metadata:
       labels:
-        workload.user.cattle.io/workloadselector: deployment-qadeploy-helloworld
+        workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}
     spec:
       containers:
       - image: rakesh635/testhelloworld:{{BUILDNUMBER}}
         imagePullPolicy: Always
-        name: helloworld
+        name: {{APPNAME}}
         ports:
         - containerPort: 8080
           name: 8080tcp80803
