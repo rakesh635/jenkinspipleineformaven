@@ -4,8 +4,8 @@ kind: Deployment
 metadata:
   labels:
     cattle.io/creator: norman
-    workload.user.cattle.io/workloadselectorcanary: deployment-qadeploy-helloworld
-  name: {{APPNAME}}
+    workload.user.cattle.io/workloadselectorcanary: deployment-qadeploy-{{APPNAME}}
+  name: {{APPNAME}}{{NAMEPREFIX}}
 spec:
   progressDeadlineSeconds: 90
   replicas: 1
@@ -26,7 +26,7 @@ spec:
       containers:
       - image: rakesh635/testhelloworld:{{BUILDNUMBER}}
         imagePullPolicy: Always
-        name: {{APPNAME}}
+        name: {{APPNAME}}{{NAMEPREFIX}}
         ports:
         - containerPort: 8080
           name: 8080tcp80803
