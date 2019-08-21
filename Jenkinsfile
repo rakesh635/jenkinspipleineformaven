@@ -67,7 +67,7 @@ volumes: [
     			rtUpload (
     				serverId: "art1",
     				buildName: env.APPNAME,
-                    buildNumber: env.BUILD_NUMBER,
+                    		buildNumber: env.BUILD_NUMBER,
     				spec:
     					"""{
     					  "files": [
