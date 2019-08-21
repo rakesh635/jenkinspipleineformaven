@@ -4,7 +4,7 @@ kind: Service
 metadata:
   labels:
     cattle.io/creator: norman
-  name: helloworld-loadbalancer
+  name: {{APPNAME}}-loadbalancer
 spec:
   externalTrafficPolicy: Cluster
   ports:
@@ -13,6 +13,6 @@ spec:
     protocol: TCP
     targetPort: 8080
   selector:
-    workload.user.cattle.io/workloadselector: deployment-qadeploy-helloworld
+    workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}
   sessionAffinity: None
   type: LoadBalancer
