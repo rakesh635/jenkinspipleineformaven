@@ -1,0 +1,45 @@
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  labels:
+    cattle.io/creator: norman
+    workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}
+  name: {{APPNAME}}{{NAMEPREFIX}}
+spec:
+  progressDeadlineSeconds: 90
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}
+  template:
+    metadata:
+      labels:
+        workload.user.cattle.io/workloadselector: deployment-qadeploy-{{APPNAME}}
+        version: v{{BUILDNUMBER}}
+    spec:
+      containers:
+      - image: rakesh635/testhelloworld:{{BUILDNUMBER}}
+        imagePullPolicy: Always
+        name: {{APPNAME}}{{NAMEPREFIX}}
+        ports:
+        - containerPort: 8080
+          name: 8080tcp80803
+          protocol: TCP
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {}
+          privileged: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        stdin: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        tty: true
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
