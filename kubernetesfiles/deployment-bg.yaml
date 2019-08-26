@@ -20,7 +20,7 @@ spec:
         version: v{{BUILDNUMBER}}
     spec:
       containers:
-      - image: rakesh635/testhelloworld:{{BUILDNUMBER}}
+      - image: rakesh635/{{APPNAME}}:{{BUILDNUMBER}}
         imagePullPolicy: Always
         name: {{APPNAME}}{{NAMEPREFIX}}
         ports:
