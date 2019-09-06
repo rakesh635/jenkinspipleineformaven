@@ -1,3 +1,4 @@
+properties([pipelineTriggers([githubPush()])])
 podTemplate(label: 'mypod1', containers: [
     containerTemplate(name: 'git', image: 'alpine/git', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'maven', image: 'maven:3.3.9-jdk-8-alpine', command: 'cat', ttyEnabled: true),
@@ -13,6 +14,7 @@ volumes: [
     node('mypod1') {
         stage('Check running containers') {
             container('docker') {
+                git 'https://github.com/rakesh635/hello-world-war.git'
                 // example to show you can run docker commands when you mount the socket
                 sh 'hostname'
                 sh 'hostname -i'
@@ -21,7 +23,6 @@ volumes: [
                 sh 'echo $deltag'
             }
         }
-        
         stage('Clone repository') {
             container('git') {
                 sh 'whoami'
@@ -35,6 +36,8 @@ volumes: [
                     env.NAMEPREFIX = ''
                     if (env.DEPLOYMENTSTRATEGY == 'canary') {
                         env.NAMEPREFIX = '-canary'
+                    } else if (env.DEPLOYMENTSTRATEGY == 'bluegreen') {
+                        env.NAMEPREFIX = '-bg'
                     }
                 }
                 sh 'git clone -b master https://github.com/rakesh635/jenkinspipleineformaven.git'
@@ -44,6 +47,7 @@ volumes: [
                     sh "sed -i 's/{{NAMEPREFIX}}/$NAMEPREFIX/g' kubernetesfiles/deployment"+env.NAMEPREFIX+".yaml"
                     sh 'cat kubernetesfiles/deployment'+env.NAMEPREFIX+'.yaml'
                     sh "sed -i 's/{{APPNAME}}/$APPNAME/g' kubernetesfiles/service"+env.NAMEPREFIX+".yaml"
+                    sh "sed -i 's/{{BUILDNUMBER}}/$BUILD_NUMBER/g' kubernetesfiles/service"+env.NAMEPREFIX+".yaml"
                     sh 'cat kubernetesfiles/service'+env.NAMEPREFIX+'.yaml'
 			    }
             }
@@ -110,12 +114,12 @@ volumes: [
                 docker images
                 contid=`docker ps --filter "label=io.kubernetes.container.name=tomcat8" --quiet`
                 echo $contid
-                docker commit $contid rakesh635/testhelloworld:$BUILD_NUMBER
-                docker tag rakesh635/testhelloworld:$BUILD_NUMBER rakesh635/testhelloworld:latest
+                docker commit $contid rakesh635/$APPNAME:$BUILD_NUMBER
+                docker tag rakesh635/$APPNAME:$BUILD_NUMBER rakesh635/$APPNAME:latest
                 '''
                 docker.withRegistry('', 'dockerlogin') {
-                    sh 'docker push rakesh635/testhelloworld:$BUILD_NUMBER'
-                    sh 'docker push rakesh635/testhelloworld:latest'
+                    sh 'docker push rakesh635/$APPNAME:$BUILD_NUMBER'
+                    sh 'docker push rakesh635/$APPNAME:latest'
                 }
             }
         }
@@ -163,7 +167,7 @@ volumes: [
     		}
 			stage("Deployed URL")
 			{
-				echo "Appln URL : http://${ext_ip}:8080/"+env.APPNAME
+				echo "Appln URL : http://${ext_ip}:8080/"+env.APPNAME 
 			}
 		} catch (Exception err) {
             echo "Some issue with updating new version; so rolling back to previous version"
@@ -183,9 +187,101 @@ volumes: [
     		    }
             }
         }
+        if (env.DEPLOYMENTSTRATEGY == 'bluegreen') {
+            try {
+                stage("Traffic to green deployment") {
+                    timeout(time: 30, unit: 'SECONDS') {
+                        script {
+                            def STOPGREEN = input message: 'Want to stop redirecting traffic to green deployment', ok: 'Next',
+                                            parameters: [
+                                            choice(id: 'STOPGREEN', name: 'STOPGREEN', choices: ['No','Yes'].join('\n'), description: 'Approve to roll out application completely to newer version')]
+                            
+                            print STOPGREEN
+                            env.STOPGREEN = STOPGREEN
+                        }
+                    }
+                }
+            } catch (Exception err) {
+                stage("Traffic routed to green and remove blue deployment")  
+                {
+                    container('kubectl') {
+        		        withKubeConfig([credentialsId: 'GKEcluster',
+                            serverUrl: 'https://34.93.78.217',
+                            contextName: 'qaenv',
+                            clusterName: 'qaenv',
+                            namespace: 'qadeploy'
+                            ]) {
+                                dir('jenkinspipleineformaven/') {
+                                    sh 'kubectl apply -f kubernetesfiles/service'+env.NAMEPREFIX+'.yaml'
+                                    sh "sed -i 's/{{APPNAME}}/$APPNAME/g' kubernetesfiles/deployment.yaml"
+                                    sh "sed -i 's/{{NAMEPREFIX}}//g' kubernetesfiles/deployment.yaml"
+                                    sh 'kubectl delete -f kubernetesfiles/deployment.yaml'
+                                    sh "sed -i 's/{{BUILDNUMBER}}/$BUILD_NUMBER/g' kubernetesfiles/deployment.yaml"
+                                    sh 'cat kubernetesfiles/deployment.yaml'
+                    		        sh 'kubectl apply -f kubernetesfiles/deployment.yaml'
+                    		        sh 'kubectl rollout status deployment.v1.apps/'+env.APPNAME+''
+                    		        sh "sed -i 's/{{APPNAME}}/$APPNAME/g' kubernetesfiles/service.yaml"
+                    		        sh 'kubectl apply -f kubernetesfiles/service.yaml'
+                    		        sh 'kubectl delete -f kubernetesfiles/deployment'+env.NAMEPREFIX+'.yaml'
+                    		        print "Traffic successfully routed to green deployment"
+                                    //return
+                                }
+                            }
+        		    }
+                }
+            }
+            if (env.STOPGREEN == "Yes" || env.STOPGREEN == "No" ) {
+                if(env.STOPGREEN == "No") {
+                    stage("Traffic routed to green and remove blue deployment")  
+                    {
+                        container('kubectl') {
+            		        withKubeConfig([credentialsId: 'GKEcluster',
+                                serverUrl: 'https://34.93.78.217',
+                                contextName: 'qaenv',
+                                clusterName: 'qaenv',
+                                namespace: 'qadeploy'
+                                ]) {
+                                    dir('jenkinspipleineformaven_new/') {
+                                        sh 'kubectl apply -f kubernetesfiles/service'+env.NAMEPREFIX+'.yaml'
+                                        sh "sed -i 's/{{APPNAME}}/$APPNAME/g' kubernetesfiles/deployment.yaml"
+                                        sh "sed -i 's/{{NAMEPREFIX}}//g' kubernetesfiles/deployment.yaml"
+                                        sh 'kubectl delete -f kubernetesfiles/deployment.yaml'
+                                        sh "sed -i 's/{{BUILDNUMBER}}/18/g' kubernetesfiles/deployment.yaml"
+                                        sh 'cat kubernetesfiles/deployment.yaml'
+                        		        sh 'kubectl apply -f kubernetesfiles/deployment.yaml'
+                        		        sh 'kubectl rollout status deployment.v1.apps/'+env.APPNAME+''
+                        		        sh "sed -i 's/{{APPNAME}}/$APPNAME/g' kubernetesfiles/service.yaml"
+                        		        sh 'kubectl apply -f kubernetesfiles/service.yaml'
+                        		        sh 'kubectl delete -f kubernetesfiles/deployment'+env.NAMEPREFIX+'.yaml'
+                        		        print "Traffic successfully routed to green deployment"
+                                        //return
+                                    }
+                                }
+            		    }
+                    }
+                }
+                if(env.STOPGREEN == "Yes") {
+                    stage("Traffic remains to blue and remove green deployment")  
+                    {
+                        container('kubectl') {
+            		        withKubeConfig([credentialsId: 'GKEcluster',
+                                serverUrl: 'https://34.93.78.217',
+                                contextName: 'qaenv',
+                                clusterName: 'qaenv',
+                                namespace: 'qadeploy'
+                                ]) {
+                                    dir('jenkinspipleineformaven_new/') {
+                                        sh 'kubectl delete -f kubernetesfiles/deployment'+env.NAMEPREFIX+'.yaml'
+                                    }
+                                }
+                        }        
+                    }
+                }
+            }
+        }
         if (env.DEPLOYMENTSTRATEGY == 'canary') {
             try {
-                stage("Canary Approval after analysis in 30 Seconds") {
+                stage("Canary Analysis in 30 Seconds") {
                     timeout(time: 300, unit: 'SECONDS') {
                         script {
                             def CANARYAPPROVAL = input message: 'Please Provide Parameters', ok: 'Next',
@@ -232,8 +328,9 @@ volumes: [
                                         sh "sed -i 's/{{APPNAME}}/$APPNAME/g' kubernetesfiles/deployment.yaml"
                                         sh "sed -i 's/{{NAMEPREFIX}}//g' kubernetesfiles/deployment.yaml"
                                         sh "sed -i 's/{{APPNAME}}/$APPNAME/g' kubernetesfiles/service.yaml"
-                                        sh 'kubectl apply -f kubernetesfiles/deployment.yaml'
                                         sh 'cat kubernetesfiles/deployment.yaml'
+                                        sh 'kubectl apply -f kubernetesfiles/deployment.yaml'
+                                        sh 'kubectl rollout status deployment.v1.apps/'+env.APPNAME+''
                             	        sh 'kubectl apply -f kubernetesfiles/service.yaml'
                             	        sh 'cat kubernetesfiles/deployment.yaml'
                                     }
